@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // mandiamo mail
 
-    header('Location: /IFOA0124/S2L1-cose-di-php/1-login/login.php');
+    header('Location:/Esercizi/U2-S2-L1/login.php');
     exit;
 }
 
