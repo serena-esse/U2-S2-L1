@@ -1,51 +1,33 @@
 <?php
-include_once __DIR__ . '/includes/init.php';
+require_once('./includes/db.php');
 
-$user = [];
-$user['username'] = $_POST['username'] ?? '';
-$user['password'] = $_POST['password'] ?? '';
+//real_escape_string evita i problemi derivanti dai caratteri speciali
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {   
-    $stmt = $pdo->prepare("
-        SELECT * FROM users
-        WHERE username = :username;
-    ");
+if($_SERVER["REQUEST_METHOD"] === "POST"){
+    $username = $connessione->real_escape_string($_POST['username']);
+    $password = $connessione->real_escape_string($_POST['password']);
 
-    $stmt->execute([
-        'username' => $_POST['username'],
-    ]);
-
-    $user_from_db = $stmt->fetch();
-
-    // verificare che c'è una riga risultante
-    if ($user_from_db) {
-        // confrontare gli hash
-        if (password_verify($_POST['password'], $user_from_db["password"])) {
-            // se gli hash coincidono => utente loggato, altrimenti errore
-            $_SESSION['user_id'] = $user_from_db['id'];
-            echo ('Ciao ' . $user_from_db["username"]);
-            // header('Location: /IFOA0124/S2L1-cose-di-php/1-login/index.php'); exit;
-        };
+    // Controllo che non ci siano registrazioni duplicate
+    $sql_select = "SELECT * FROM users WHERE username = '$username'";
+    if($result = $connessione->query($sql_select)) {
+        if ($result->num_rows == 1) {
+            $row = $result->fetch_array(MYSQLI_ASSOC);
+            if(password_verify($password, $row['password'])){
+                session_start();
+                $_SESSION['loggato'] = true;
+                $_SESSION['id'] = $row['id'];
+                $_SESSION['username'] = $row['username'];
+                header("location: area-privata.php");
+            } else {
+                echo "La password non è corretta";
+            }
+        } else {
+            echo "Non ci sono account con quello username";
+        }
+    } else {
+        echo "Errore in fase di login";
     }
 
-    // popolare l'array degli errori
-    $errors['credentials'] = 'Credenziali non valide';
+    $connessione->close();
 }
-
-include_once __DIR__ . '/includes/initial.php'; ?>
-
-    <h1>Login</h1>
-    <form action="" method="POST" novalidate>
-        <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" class="form-control" id="username" name="username" value="<?= $user['username'] ?>">
-        </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" name="password" value="">
-        </div>
-        <button type="submit" class="btn btn-primary">Login</button>
-    </form>
-
-<?php
-include __DIR__ . '/includes/end.php';
+?>

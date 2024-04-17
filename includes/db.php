@@ -3,14 +3,9 @@
 $host = 'localhost';
 $db   = 'ifoa_blog';
 $user = 'root';
-$pass = '';
+$password = '';
 
-$dsn = "mysql:host=$host;dbname=$db";
+$connessione = new mysqli($host, $user, $password, $db);
 
-$options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES   => false,
-];
-
-$pdo = new PDO($dsn, $user, $pass, $options);
+if($connessione ===false)
+{die("Errore durante la connessione: " . $connessione->connect_error);} ?>
